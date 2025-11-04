@@ -45,4 +45,36 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function isOnline()
+    {
+        // Untuk MVP, kita pakai simple logic dulu
+        // Nanti bisa diganti dengan last_seen_at check
+        return $this->status === 'online';
+    }
+
+    /**
+     * Get initial for avatar
+     */
+    public function getInitial()
+    {
+        return strtoupper(substr($this->username, 0, 1));
+    }
+
+    public function servers()
+    {
+        return $this->belongsToMany(Server::class, 'server_user')
+                    ->withPivot('role', 'joined_at')
+                    ->withTimestamps();
+    }
+
+    public function ownedServers()
+    {
+        return $this->hasMany(Server::class, 'owner_id');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }
