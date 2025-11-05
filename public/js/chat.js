@@ -54,46 +54,59 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // public/js/chat.js - UPDATE sendMessage function
     function sendMessage() {
-        const content = messageInput.value.trim();
-        if (!content) return;
+    const content = messageInput.value.trim();
+    if (!content) return;
 
-        // Show loading state
-        const submitBtn = messageForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Sending...';
-        submitBtn.disabled = true;
+    const channelId = messageForm.dataset.channelId;
+    
+    console.log('🟡 Sending message to channel:', channelId);
 
-        // Send message via AJAX
-        fetch(`/api/channels/${channelId}/messages`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ content: content })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            messageInput.value = '';
-            messageInput.focus();
-            updateCharCount(0);
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.');
-        })
-        .finally(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        });
-    }
+    // Show loading state
+    const submitBtn = messageForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+
+    // ✅ PERBAIKI URL - sesuaikan dengan route yang ada
+    fetch(`/api/channels/${channelId}/messages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => {
+        console.log('🟡 Response status:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => { 
+                throw new Error(`HTTP ${response.status}: ${text}`); 
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        messageInput.value = '';
+        updateCharCount(0);
+        
+        // Auto-add message ke UI tanpa refresh
+        addMessageToChat(data);
+        
+        // Optional: Scroll to bottom
+        scrollToBottom();
+    })
+    .catch(error => {
+        console.error('❌ Error sending message:', error);
+        alert('Failed to send message: ' + error.message);
+    })
+    .finally(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
+}
 
     function addMessageToChat(message) {
         const messageElement = createMessageElement(message);
@@ -190,6 +203,28 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCharCount(e.target.value.length);
     });
 
-    // Initial scroll to bottom
     scrollToBottom();
+
+    let typingTimer;
+    const typingTimeout = 1000; // 1 second
+
+    messageInput.addEventListener('input', function() {
+        // Broadcast typing start
+        window.Echo.private(`channel.${channelId}`)
+            .whisper('typing', {
+                user: authUser,
+                typing: true
+            });
+        
+    // Clear previous timer
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+        // Broadcast typing stop
+        window.Echo.private(`channel.${channelId}`)
+            .whisper('typing', {
+                user: authUser,
+                typing: false
+            });
+    }, typingTimeout);
+});
 });

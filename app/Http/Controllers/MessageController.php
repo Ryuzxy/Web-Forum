@@ -26,29 +26,41 @@ class MessageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, channel $channel)
-    {
-        $request->validate([
+    // app/Http/Controllers/MessageController.php - UPDATE store method
+public function store(Request $request)
+{
+    $request->validate([
+        'channel_id' => 'required|exists:channels,id',
         'content' => 'required|string|max:2000',
     ]);
 
-    if (!auth()->user()->servers->contains($channel->server_id)) {
-        abort(403);
+    $channel = Channel::find($request->channel_id);
+
+    if (!$channel || !auth()->user()->servers->contains($channel->server_id)) {
+        return response()->json(['error' => 'Unauthorized'], 403);
     }
 
     $message = Message::create([
-        'channel_id' => $channel->id,
+        'channel_id' => $request->channel_id,
         'user_id' => auth()->id(),
         'content' => $request->content,
     ]);
 
     $message->load('user');
 
-    // Broadcast the message
     broadcast(new MessageSent($message))->toOthers();
 
-    return response()->json($message);
+    if ($request->expectsJson()) {
+        return response()->json($message);
+    } else {
+        return redirect()->route('servers.show', [
+            'server' => $channel->server_id,
+            'channel' => $channel->id  // Tetap di channel yang sama
+        ])->with('success', 'Message sent!');
     }
+
+    // return response()->json($message); // Tetap return JSON untuk AJAX
+}
 
     /**
      * Display the specified resource.

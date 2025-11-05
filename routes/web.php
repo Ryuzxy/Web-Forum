@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServerController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\InviteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,5 +28,13 @@ Route::get('/dashboard', [ServerController::class, 'index'])
 Route::get('/servers/{server}', [ServerController::class, 'show'])
     ->name('servers.show')
     ->middleware('auth');
+
+Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+
+Route::post('/servers/{server}/generate-invite', [InviteController::class, 'generate'])
+    ->name('invites.generate');
+    
+Route::get('/join/{code}', [InviteController::class, 'join'])
+    ->name('invites.join');
 
 require __DIR__.'/auth.php';

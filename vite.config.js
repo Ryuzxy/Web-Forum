@@ -8,4 +8,10 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: 'web-forum.local', // atau 'localhost'
+        hmr: {
+            host: 'web-forum.local',
+        },
+    },
 });

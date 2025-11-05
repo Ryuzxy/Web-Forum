@@ -10,5 +10,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('channels.messages', MessageController::class)->only(['index', 'store']);
+    Route::post('/channels/{channel}/messages', [MessageController::class, 'store']);
+    Route::post('/messages', [MessageController::class, 'store']);
+    Route::apiResource('channels.messages', MessageController::class)->except(['store']);
 });
+
+Route::post('/messages/{message}/react', [MessageController::class, 'react']);

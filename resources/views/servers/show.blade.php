@@ -2,6 +2,33 @@
 <script src="{{ asset('js/chat.js') }}"></script>
 @endpush
 <x-app-layout>
+    <!-- Tambahkan di Server Header section -->
+        <div class="p-4 border-b border-gray-700">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="font-bold text-lg">{{ $server->name }}</h2>
+                    <p class="text-gray-400 text-sm">{{ $server->description }}</p>
+                </div>
+                
+                @if($server->owner_id == auth()->id())
+                <div class="flex space-x-2">
+                    <form action="{{ route('invites.generate', $server) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            Generate Invite
+                        </button>
+                    </form>
+                    
+                    @if($server->invite_code)
+                    <div class="bg-gray-700 px-3 py-1 rounded text-sm">
+                        <span class="text-gray-300">Invite: </span>
+                        <code class="text-green-400">{{ $server->invite_code }}</code>
+                    </div>
+                    @endif
+                </div>
+                @endif
+            </div>
+        </div>
     <div class="flex h-screen bg-gray-900 text-white">
         <!-- Server Sidebar -->
         <div class="w-16 bg-gray-800 flex flex-col items-center py-4">
@@ -37,7 +64,7 @@
             
             <!-- Channels List -->
             <div class="flex-1 p-4">
-                <h3 class="text-gray-400 text-sm font-semibold mb-2">TEXT CHANNELS</h3>
+                <h3 class="text-gray-400 text-sm font-semibold mb-2">CHANNELS</h3>
                 <div class="space-y-1">
                     @foreach($server->channels as $channel)
                     <div class="flex items-center px-2 py-1 rounded hover:bg-gray-700 cursor-pointer channel-item 
@@ -107,30 +134,24 @@
             </div>
 
             <!-- Message Input -->
-            <!-- Ganti message input section dengan yang lebih baik -->
             <div class="bg-gray-750 p-4">
-                <form id="message-form" data-channel-id="{{ $activeChannel->id }}">
+                <form action="{{ route('messages.store') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="channel_id" value="{{ $activeChannel->id }}">
+                    
                     <div class="relative">
                         <input type="text" 
                             name="content" 
                             placeholder="Message #{{ $activeChannel->name }}"
                             class="w-full bg-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-20"
-                            id="message-input"
+                            required
                             maxlength="2000">
-                        <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                            <button type="button" class="text-gray-400 hover:text-gray-300 transition">
-                                😊
-                            </button>
+                        <div class="absolute right-2 top-1/2 transform -translate-y-1/2">
                             <button type="submit" 
-                                    class="bg-indigo-600 text-white px-4 py-1 rounded text-sm hover:bg-indigo-700 transition">
-                                Send
+                                    class="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 transition">
+                                    SEND
                             </button>
                         </div>
-                    </div>
-                    <div class="text-xs text-gray-400 mt-2 flex justify-between">
-                        <span>Press Enter to send</span>
-                        <span id="char-count">0/2000</span>
                     </div>
                 </form>
             </div>
