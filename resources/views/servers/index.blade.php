@@ -1,30 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Your Servers
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-800 leading-tight">
+                Your Servers
+            </h2>
+            <div class="flex gap-4">
+                <a href="{{ route('servers.create') }}" 
+                   class="bg-indigo-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-indigo-700 transition inline-flex items-center">
+                    Create Server
+                </a>
+                <a href="{{ route('invites.form') }}" 
+                   class="bg-purple-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-purple-700 transition inline-flex items-center">
+                    Join Server
+                </a>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Create Server Card -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Create New Server</h3>
-                    <form action="{{ route('servers.store') }}" method="POST">
-                        @csrf
-                        <div class="flex gap-4">
-                            <input type="text" name="name" placeholder="Server name" 
-                                   class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg" required>
-                            <button type="submit" 
-                                    class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
-                                Create Server
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <!-- Servers List -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($servers as $server)
@@ -49,7 +43,7 @@
                 @if($servers->isEmpty())
                 <div class="col-span-3 text-center py-12">
                     <p class="text-gray-400 text-lg">You haven't joined any servers yet.</p>
-                    <p class="text-gray-500">Create your first server above!</p>
+                    <p class="text-gray-500">Create your first server using the button above!</p>
                 </div>
                 @endif
             </div>

@@ -31,10 +31,38 @@ Route::get('/servers/{server}', [ServerController::class, 'show'])
 
 Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
 
+// Route::post('/messages/{message}/react', [MessageController::class, 'toggleReaction']);
+
 Route::post('/servers/{server}/generate-invite', [InviteController::class, 'generate'])
     ->name('invites.generate');
     
-Route::get('/join/{code}', [InviteController::class, 'join'])
-    ->name('invites.join');
+Route::middleware('auth')->group(function () {
+    // Generate and revoke invites
+    Route::post('/servers/{server}/generate-invite', [InviteController::class, 'generate'])
+        ->name('invites.generate');
+    
+    Route::post('/servers/{server}/revoke-invite', [InviteController::class, 'revoke'])
+        ->name('invites.revoke');
+        
+    // 🔹 SHOW FORM untuk input code (TANPA parameter)
+    Route::get('/invite', [InviteController::class, 'showInviteForm'])
+        ->name('invites.form');
+        
+    // 🔹 PROCESS code dari form input
+    Route::post('/invite/process', [InviteController::class, 'processInviteCode'])
+        ->name('invites.process');
+        
+    // 🔹 SHOW JOIN CONFIRMATION (DENGAN code parameter)
+    Route::get('/invite/{code}', [InviteController::class, 'showJoinConfirmation'])
+        ->name('invites.confirm');
+        
+    // 🔹 JOIN SERVER (form submission dari confirmation page)
+    Route::post('/invite/{code}/join', [InviteController::class, 'joinServer'])
+        ->name('invites.join');
+        
+    // 🔹 DIRECT JOIN LINK (untuk shareable links)
+    Route::get('/join/{code}', [InviteController::class, 'showJoinConfirmation'])
+        ->name('invites.join.redirect');
+});
 
 require __DIR__.'/auth.php';

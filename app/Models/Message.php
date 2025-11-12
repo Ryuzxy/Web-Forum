@@ -9,7 +9,8 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['channel_id', 'user_id', 'content', 'metadata', 'reply_to_id'];
+    protected $fillable = ['channel_id', 'user_id', 'content', 'metadata', 'reply_to_id','channel_id', 'user_id', 'content', 'file_path', 'file_name', 
+    'file_size', 'file_type', 'mime_type', 'metadata', 'reply_to_id'];
 
     protected $casts = [
         'metadata' => 'array',
@@ -34,4 +35,52 @@ class Message extends Model
     {
         return $this->belongsTo(Message::class, 'reply_to_id');
     }
+    public function reactions()
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
+    public function userReactions()
+    {
+        return $this->hasMany(MessageReaction::class)->where('user_id', auth()->id());
+    }
+    public function getReactionsCount()
+    {
+        return $this->reactions()
+            ->selectRaw('emoji, COUNT(*) as count')
+            ->groupBy('emoji')
+            ->get()
+            ->pluck('count', 'emoji');
+    }
+
+    public function hasFile()
+{
+    return !is_null($this->file_path);
+}
+
+public function isImage()
+{
+    return $this->file_type === 'image';
+}
+
+public function isDocument()
+{
+    return $this->file_type === 'document';
+}
+
+public function getFileSizeFormatted()
+{
+    if (!$this->file_size) return null;
+    
+    $size = (int)$this->file_size;
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $unitIndex = 0;
+    
+    while ($size >= 1024 && $unitIndex < count($units) - 1) {
+        $size /= 1024;
+        $unitIndex++;
+    }
+    
+    return round($size, 2) . ' ' . $units[$unitIndex];
+}
 }

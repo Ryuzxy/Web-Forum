@@ -85,4 +85,31 @@ public function store(Request $request)
     {
         //
     }
+
+    public function toggleReaction(Request $request, Message $message)
+    {
+        $emoji = $request->emoji;
+        $user = auth()->user();
+
+        $reaction = $message->reactions()->where('user_id', $user->id)->where('emoji', $emoji)->first();
+
+        if ($reaction) {
+            $reaction->delete();
+        } else {
+            $message->reactions()->create([
+                'user_id' => $user->id,
+                'emoji' => $emoji,
+            ]);
+        }
+
+        // Kirim data terbaru
+        $reactions = $message->reactions->groupBy('emoji')->map->count();
+        $userReactions = $message->reactions()->where('user_id', $user->id)->pluck('emoji')->toArray();
+
+        return response()->json([
+            'success' => true,
+            'reactions_count' => $reactions,
+            'user_reactions' => $userReactions,
+        ]);
+    }
 }
