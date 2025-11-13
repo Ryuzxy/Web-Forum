@@ -12,7 +12,9 @@
     <nav class="fixed w-full bg-gray-900/80 backdrop-blur-sm z-50 border-b border-gray-800">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg"></div>
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg">
+                
+                </div>
                 <span class="text-white font-bold text-xl">ForumApp</span>
             </div>
             

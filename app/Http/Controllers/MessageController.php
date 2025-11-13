@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Message;
 use App\Models\Channel;
-use App\Events\MessageSent;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -26,48 +25,56 @@ class MessageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    // app/Http/Controllers/MessageController.php - UPDATE store method
-public function store(Request $request)
-{
-    $request->validate([
-        'channel_id' => 'required|exists:channels,id',
-        'content' => 'required|string|max:2000',
-    ]);
+    public function store(Request $request, Channel $channel)
+    {
+        // Validasi
+        $validated = $request->validate([
+            'content' => 'nullable|string|max:2000',
+            'file' => 'nullable|file|max:10240', // 10MB
+        ]);
 
-    $channel = Channel::find($request->channel_id);
+        // Check if at least content or file is provided
+        if (!$validated['content'] && !$request->hasFile('file')) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Message or file required'
+            ], 422);
+        }
 
-    if (!$channel || !auth()->user()->servers->contains($channel->server_id)) {
-        return response()->json(['error' => 'Unauthorized'], 403);
+        $message = new Message();
+        $message->channel_id = $channel->id;
+        $message->user_id = auth()->id();
+        $message->content = $validated['content'] ?? '';
+
+        // Handle file upload
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('messages', 'public');
+            
+            $message->file_path = $path;
+            $message->file_name = $file->getClientOriginalName();
+            $message->mime_type = $file->getMimeType();
+            $message->file_size = $file->getSize();
+        }
+
+        $message->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Message sent successfully',
+            'data' => $message->load('user', 'reactions')
+        ]);
     }
-
-    $message = Message::create([
-        'channel_id' => $request->channel_id,
-        'user_id' => auth()->id(),
-        'content' => $request->content,
-    ]);
-
-    $message->load('user');
-
-    broadcast(new MessageSent($message))->toOthers();
-
-    if ($request->expectsJson()) {
-        return response()->json($message);
-    } else {
-        return redirect()->route('servers.show', [
-            'server' => $channel->server_id,
-            'channel' => $channel->id  // Tetap di channel yang sama
-        ])->with('success', 'Message sent!');
-    }
-
-    // return response()->json($message); // Tetap return JSON untuk AJAX
-}
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Message $message)
     {
-        //
+        return response()->json([
+            'success' => true,
+            'data' => $message->load('user', 'reactions')
+        ]);
     }
 
     /**

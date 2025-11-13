@@ -633,32 +633,59 @@ document.querySelectorAll('.emoji-btn').forEach(btn => {
 
     // Form submit handler
     document.getElementById('message-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const channelId = this.dataset.channelId;
-        
-        fetch(`/api/channels/${channelId}/messages`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Clear form
-                document.getElementById('message-input').value = '';
-                document.getElementById('char-count').textContent = '0/2000';
-                removeFile();
-                
-                // Reload messages atau update UI
-                location.reload();
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const channelId = this.dataset.channelId;
+    
+    fetch(`/channels/${channelId}/messages`, {  // ✅ Ubah dari /api/channels ke /channels
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response:', data);
+        if (data.success) {
+            document.getElementById('message-input').value = '';
+            document.getElementById('char-count').textContent = '0/2000';
+            removeFile();
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to send message'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending message: ' + error.message);
     });
+});
+
+// Toggle reaction
+function toggleReaction(messageId, emoji) {
+    fetch(`/messages/${messageId}/react`, {  // ✅ Ubah dari /api/messages ke /messages
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ emoji: emoji })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
     </script>
 </html>

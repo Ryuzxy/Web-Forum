@@ -16,30 +16,44 @@ class ReactionController extends Controller
             'emoji' => 'required|string|max:10'
         ]);
 
+        $emoji = $request->emoji ?? $request->input('emoji');
+        $user = auth()->user();
+
         // Check if user can access this message
         if (!auth()->user()->servers->contains($message->channel->server_id)) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $emoji = $request->emoji;
-        $user = $request->user();
-
-        $reaction = $message->reactions()->where('user_id', $user->id)->where('emoji', $emoji)->first();
+        // Check if reaction already exists
+        $reaction = $message->reactions()
+            ->where('user_id', $user->id)
+            ->where('emoji', $emoji)
+            ->first();
 
         if ($reaction) {
+            // Delete if exists
             $reaction->delete();
+            $action = 'removed';
         } else {
-            $message->reactions()->create([
+            // Create new reaction
+            MessageReaction::create([
+                'message_id' => $message->id,
                 'user_id' => $user->id,
                 'emoji' => $emoji,
             ]);
+            $action = 'added';
         }
 
+        // Get updated reactions count
         $reactions = $message->reactions->groupBy('emoji')->map->count();
-        $userReactions = $message->reactions()->where('user_id', $user->id)->pluck('emoji')->toArray();
+        $userReactions = $message->reactions()
+            ->where('user_id', $user->id)
+            ->pluck('emoji')
+            ->toArray();
 
         return response()->json([
             'success' => true,
+            'action' => $action,
             'reactions_count' => $reactions,
             'user_reactions' => $userReactions,
         ]);
@@ -54,12 +68,16 @@ class ReactionController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $reactionsCount = $message->getReactionsCount();
-        $userReactions = $message->userReactions->pluck('emoji');
+        $reactions = $message->reactions->groupBy('emoji')->map->count();
+        $userReactions = $message->reactions()
+            ->where('user_id', auth()->id())
+            ->pluck('emoji')
+            ->toArray();
 
         return response()->json([
-            'reactions_count' => $reactionsCount,
-            'user_reactions' => $userReactions
+            'success' => true,
+            'reactions_count' => $reactions,
+            'user_reactions' => $userReactions,
         ]);
     }
 }

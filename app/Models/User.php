@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use App\Models\MessageReaction;
 
 class User extends Authenticatable
 {
@@ -18,9 +20,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'username', 'email', 'password', 'display_name', 
+        'bio', 'avatar', 'status', 'last_seen_at', 'theme', 'settings'
+    ];
+
+    protected $casts = [
+        'last_seen_at' => 'datetime',
+        'settings' => 'array'
     ];
 
     /**
@@ -32,6 +38,13 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function getDisplayName()
+    {
+        return $this->display_name ?: $this->username;
+    }
+
+
 
     /**
      * Get the attributes that should be cast.
@@ -48,14 +61,38 @@ class User extends Authenticatable
 
     public function isOnline()
     {
-        // Untuk MVP, kita pakai simple logic dulu
-        // Nanti bisa diganti dengan last_seen_at check
-        return $this->status === 'online';
+        return $this->status === 'online' && 
+           $this->last_seen_at && 
+           $this->last_seen_at->gt(now()->subMinutes(5));
     }
 
-    /**
-     * Get initial for avatar
-     */
+    public function getAvatarUrl()
+    {
+        if ($this->avatar) {
+            return Storage::url($this->avatar);
+        }
+        
+        // Generate default avatar based on username
+        return $this->generateDefaultAvatar();
+    }
+
+    private function generateDefaultAvatar()
+    {
+        $colors = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8'];
+        $color = $colors[hexdec(substr(md5($this->username), 0, 6)) % count($colors)];
+        
+        return "https://ui-avatars.com/api/?name=" . urlencode($this->getDisplayName()) . 
+            "&color=FFFFFF&background=" . $color . "&size=128";
+    }
+
+    public function updateStatus($status)
+    {
+        $this->update([
+            'status' => $status,
+            'last_seen_at' => now()
+        ]);
+    }
+
     public function getInitial()
     {
         return strtoupper(substr($this->username, 0, 1));
@@ -77,4 +114,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+    
+    public function reactions()
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
 }
