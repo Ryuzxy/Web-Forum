@@ -9,8 +9,8 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['channel_id', 'user_id', 'content', 'metadata', 'reply_to_id','channel_id', 'user_id', 'content', 'file_path', 'file_name', 
-    'file_size', 'file_type', 'mime_type', 'metadata', 'reply_to_id'];
+    protected $fillable = ['channel_id', 'user_id', 'content', 'metadata', 'reply_to_id', 'content', 'file_path', 'file_name', 
+    'file_size', 'file_type', 'mime_type'];
 
     protected $casts = [
         'metadata' => 'array',
@@ -55,17 +55,17 @@ class Message extends Model
 
     public function hasFile()
 {
-    return !is_null($this->file_path);
+    return !empty($this->file_path) && !empty($this->file_name);
 }
 
 public function isImage()
 {
-    return $this->file_type === 'image';
+    return $this->hasFile() && $this->file_type === 'image';
 }
 
 public function isDocument()
 {
-    return $this->file_type === 'document';
+    return $this->hasFile() && $this->file_type === 'document';
 }
 
 public function getFileSizeFormatted()

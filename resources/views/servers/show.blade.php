@@ -201,10 +201,10 @@
                                 @if($message->isImage())
                                     <!-- Image Preview -->
                                     <div class="max-w-md rounded-lg overflow-hidden border border-gray-600">
-                                        <img src="{{ Storage::url($message->file_path) }}" 
+                                        <img src="{{ route('files.preview', $message) }}"  
                                              alt="{{ $message->file_name }}"
                                              class="max-h-64 w-auto cursor-pointer hover:opacity-90 transition-opacity"
-                                             onclick="openImageModal('{{ Storage::url($message->file_path) }}', '{{ $message->file_name }}')">
+                                             onclick="openImageModal('{{ route('files.preview', $message) }}', '{{ $message->file_name }}')">
                                     </div>
                                     <div class="text-sm text-gray-400 mt-1">
                                         <a href="{{ route('files.download', $message) }}" 

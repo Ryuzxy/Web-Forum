@@ -14,7 +14,7 @@ class FileUploadController extends Controller
         'document' => ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar']
     ];
 
-    private $maxFileSize = 10240; // 10MB in KB
+    private $maxFileSize = 10240; 
 
     public function upload(Request $request, Channel $channel)
     {
@@ -85,8 +85,14 @@ class FileUploadController extends Controller
             abort(404);
         }
 
-        return Storage::download($message->file_path, $message->file_name);
+        // ✅ Gunakan storage disk yang konsisten
+        if (!Storage::disk('public')->exists($message->file_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->download($message->file_path, $message->file_name);
     }
+
 
     public function preview(Message $message)
     {
@@ -98,6 +104,18 @@ class FileUploadController extends Controller
             abort(404);
         }
 
-        return response()->file(Storage::path($message->file_path));
+        // ✅ Gunakan storage disk yang benar
+        if (!Storage::disk('public')->exists($message->file_path)) {
+            abort(404);
+        }
+
+        // ✅ Return file response dengan headers yang benar
+        return response()->file(
+            Storage::disk('public')->path($message->file_path),
+            [
+                'Content-Type' => $message->mime_type,
+                'Content-Disposition' => 'inline; filename="' . $message->file_name . '"'
+            ]
+        );
     }
 }

@@ -1,4 +1,3 @@
-// public/js/chat.js
 document.addEventListener('DOMContentLoaded', function() {
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
