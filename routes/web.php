@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\ProfileController;
+use App\Http\controllers\FileUploadController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReactionController;
@@ -51,6 +52,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     
     Route::get('/join/{code}', [InviteController::class, 'showJoinConfirmation'])->name('invites.join.redirect');
+
+    //file upload 
+    Route::post('/channels/{channel}/upload', [FileUploadController::class, 'upload'])->name('channels.upload');
 });
 
 // Breeze Auth Routes

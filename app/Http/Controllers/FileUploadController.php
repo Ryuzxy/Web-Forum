@@ -16,8 +16,7 @@ class FileUploadController extends Controller
 
     private $maxFileSize = 10240; 
 
-    public function upload(Request $request, Channel $channel)
-    {
+    public function upload(Request $request, Channel $channel){
         // Check if user can access this channel
         if (!auth()->user()->servers->contains($channel->server_id)) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -25,7 +24,7 @@ class FileUploadController extends Controller
 
         $request->validate([
             'file' => 'required|file|max:' . $this->maxFileSize,
-            'message' => 'nullable|string|max:1000'
+            'content' => 'nullable|string|max:1000' // ✅ UBAH 'message' MENJADI 'content'
         ]);
 
         $file = $request->file('file');
@@ -39,13 +38,13 @@ class FileUploadController extends Controller
 
         // Generate unique filename
         $filename = Str::random(20) . '_' . time() . '.' . $extension;
-        $path = $file->storeAs('uploads/' . $channel->id, $filename, 'public');
+        $path = $file->storeAs('uploads', $filename, 'public'); // ✅ SIMPLIFY PATH
 
         // Create message with file
         $message = Message::create([
             'channel_id' => $channel->id,
             'user_id' => auth()->id(),
-            'content' => $request->input('message', ''),
+            'content' => $request->input('content', ''), // ✅ UBAH 'message' MENJADI 'content'
             'file_path' => $path,
             'file_name' => $originalName,
             'file_size' => $fileSize,
