@@ -1,3 +1,10 @@
+document.addEventListener('click', function (e) {
+    document.querySelectorAll('.reaction-picker').forEach(p => {
+        if (!p.contains(e.target)) p.classList.add('hidden');
+    });
+});
+
+
 document.addEventListener('DOMContentLoaded', function() {
     // Delegate clicks for reaction UI (works for dynamically added elements)
     document.body.addEventListener('click', function(e) {

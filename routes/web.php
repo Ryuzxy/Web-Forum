@@ -37,7 +37,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/channels/{channel}/messages', [MessageController::class, 'store'])->name('messages.store');
     Route::get('/channels/{channel}/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages/{message}/react', [ReactionController::class, 'toggleReaction'])->name('messages.react');
-    
+    Route::post('/messages/send', [MessageController::class, 'store'])->name('messages.send');
+
+
     // Invite Routes
     Route::prefix('servers/{server}')->group(function () {
         Route::post('/generate-invite', [InviteController::class, 'generate'])->name('invites.generate');

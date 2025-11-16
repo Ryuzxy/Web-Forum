@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Message;
 use App\Models\Channel;
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
@@ -27,43 +29,32 @@ class MessageController extends Controller
      */
     public function store(Request $request, Channel $channel)
     {
-        // Validasi
-        $validated = $request->validate([
-            'content' => 'nullable|string|max:2000',
-            'file' => 'nullable|file|max:10240', // 10MB
-        ]);
+        $request->validate([
+        'content' => 'required_without:file|string|max:2000',
+        'file'    => 'nullable|file|max:10240', // 10MB
+    ]);
 
-        // Check if at least content or file is provided
-        if (!$validated['content'] && !$request->hasFile('file')) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Message or file required'
-            ], 422);
-        }
+    $filePath = null;
 
-        $message = new Message();
-        $message->channel_id = $channel->id;
-        $message->user_id = auth()->id();
-        $message->content = $validated['content'] ?? '';
+    if ($request->hasFile('file')) {
+        $filePath = $request->file('file')->store('uploads/messages', 'public');
+    }
 
-        // Handle file upload
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $path = $file->store('messages', 'public');
-            
-            $message->file_path = $path;
-            $message->file_name = $file->getClientOriginalName();
-            $message->mime_type = $file->getMimeType();
-            $message->file_size = $file->getSize();
-        }
+    $msg = $channel->messages()->create([
+        'user_id'   => auth()->id(),
+        'content'   => $request->content,
+        'file_path' => $filePath,
+    ]);
 
-        $message->save();
+   
+    $msg->load('user'); 
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Message sent successfully',
-            'data' => $message->load('user', 'reactions')
-        ]);
+    broadcast(new MessageSent($msg))->toOthers();
+
+    return response()->json([
+        'success' => true,
+        'data' => $msg
+    ]);
     }
 
     /**

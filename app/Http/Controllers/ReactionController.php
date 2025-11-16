@@ -80,4 +80,23 @@ class ReactionController extends Controller
             'user_reactions' => $userReactions,
         ]);
     }
+    public function react(Request $request, Message $message)
+    {
+        $request->validate([
+            'emoji' => 'required|string|max:10'
+        ]);
+
+        $reaction = $message->reactions()->updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'emoji'   => $request->emoji
+            ],
+            []
+        );
+
+        broadcast(new MessageReacted($reaction->load('user')))->toOthers();
+
+        return response()->json(['success' => true]);
+    }
+
 }

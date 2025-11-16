@@ -21,7 +21,7 @@ class MessageSent implements ShouldBroadcast
      */
     public function __construct(message $message)
     {
-        $this->message = $message->load('user');
+        $this->message = $message;
     }
 
     /**
@@ -33,4 +33,23 @@ class MessageSent implements ShouldBroadcast
     {
         return new PresenceChannel('channel.' . $this->message->channel_id);
     }
+    public function broadcastWith()
+    {
+        return [
+            'id' => $this->message->id,
+            'content' => $this->message->content,
+            'user' => [
+                'id' => $this->message->user->id,
+                'name' => $this->message->user->name,
+            ],
+            'created_at' => $this->message->created_at->toDateTimeString(),
+            'file' => $this->message->file_path ? [
+                'path' => $this->message->file_path,
+                'name' => $this->message->file_name,
+                'mime' => $this->message->mime_type,
+                'size' => $this->message->file_size,
+            ] : null,
+        ];
+    }
+
 }

@@ -12,90 +12,37 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js', ])
         <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
-        <script src="{{ asset('js/chat.js') }}" defer></script>
+        <script>
+            const SERVER_ID = {{ $server->id }};
+            const pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+            cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+            encrypted: true
+        });
+
+        const ch = pusher.subscribe('server.{{ $server->id }}');
+
+        ch.bind('message.created', function(data) {
+            appendMessage(data.message);
+        });
+
+        function copyInviteCode(code) {
+            const inviteUrl = "{{ url('/join/') }}/" + code;
+            navigator.clipboard.writeText(inviteUrl).then(function() {
+                // Bisa tambahkan notifikasi sukses di sini
+                console.log('Invite link copied to clipboard');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+        </script>
         <script src="{{ asset('js/reactions.js') }}" defer></script> 
         <script src="{{ asset('js/file-upload.js') }}" defer></script>
     </head>
     <body>
 
-        <div class="bg-gray-750 border-b border-gray-700 px-6 py-4">
-            <div class="flex justify-between items-center">
-                <div>
-                <h2 class="font-bold text-lg text-white">{{ $server->name }}</h2>
-                <p class="text-gray-400 text-sm">{{ $server->description }}</p>
-            </div>
-            
-            <!-- Invite Section -->
-            <div class="flex items-center space-x-4">
-                @if($server->owner_id == auth()->id())
-                    <div class="flex items-center space-x-3">
-                        @if($server->invite_code)
-                            <!-- Dropdown for Invite Code -->
-                            <div class="relative" x-data="{ open: false }">
-                                <button @click="open = !open" 
-                                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition flex items-center space-x-2">
-                                    <span>🔗</span>
-                                    <span>Invite Link</span>
-                                </button>
-
-                                <!-- Dropdown Content -->
-                                <div x-show="open"
-                                     @click.away="open = false"
-                                     x-transition:enter="transition ease-out duration-200"
-                                     x-transition:enter-start="opacity-0 transform scale-95"
-                                     x-transition:enter-end="opacity-100 transform scale-100"
-                                     class="absolute right-0 mt-2 w-72 bg-gray-800 rounded-lg shadow-lg p-4 z-50">
-                                    <div class="space-y-3">
-                                        <div class="text-sm text-gray-300">Server Invite Link</div>
-                                        <div class="flex items-center space-x-2 bg-gray-700 p-2 rounded">
-                                            <code class="text-xs text-green-400 flex-1 overflow-x-auto">
-                                                {{ url('/join/' . $server->invite_code) }}
-                                            </code>
-                                            <button onclick="copyInviteCode('{{ $server->invite_code }}')"
-                                                    class="text-blue-400 hover:text-blue-300 text-sm bg-gray-600 px-3 py-1 rounded transition-colors">
-                                                Copy
-                                            </button>
-                                        </div>
-                                        
-                                        <!-- Revoke Button -->
-                                        <form action="{{ route('invites.revoke', $server) }}" method="POST" class="mt-2">
-                                            @csrf
-                                            <button type="submit" 
-                                                    class="w-full bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition">
-                                                🔒 Revoke Invite Link
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <!-- Generate Invite -->
-                            <form action="{{ route('invites.generate', $server) }}" method="POST">
-                                @csrf
-                                <button type="submit" 
-                                        class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition flex items-center space-x-2">
-                                    <span>🎯</span>
-                                    <span>Generate Invite</span>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                @else
-                    <!-- For non-owners, show if they can invite -->
-                    @if($server->invite_code)
-                        <div class="bg-gray-800 px-4 py-2 rounded-lg border border-gray-600">
-                            <div class="text-gray-300 text-sm">Invite Code:</div>
-                            <code class="text-green-400 font-mono text-sm">{{ $server->invite_code }}</code>
-                        </div>
-                    @endif
-                @endif
-            </div>
-        </div>
-    </div>
-    
-    <div class="flex h-screen bg-gray-900 text-white">
+    <div class="flex h-screen bg-gray-900 text-white ">
         <!-- Servers Sidebar -->
         <div class="w-16 bg-gray-900 flex flex-col items-center py-4 space-y-3">
             <!-- Home Button -->
@@ -154,10 +101,10 @@
             <div class="p-4 bg-gray-750 border-t border-gray-700">
                 <div class="flex items-center space-x-2">
                     <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
-                        {{ substr(auth()->user()->username, 0, 1) }}
+                        {{ substr(auth()->user()->name, 0, 1) }}
                     </div>
                     <div class="flex-1">
-                        <div class="text-sm font-semibold">{{ auth()->user()->username }}</div>
+                        <div class="text-sm font-semibold">{{ auth()->user()->name }}</div>
                         <div class="text-xs text-gray-400">Online</div>
                     </div>
                 </div>
@@ -181,16 +128,16 @@
             <!-- Messages Area -->
             <div class="flex-1 bg-gray-700 overflow-y-auto p-4 space-y-4" id="messages-container">
                 @foreach($activeChannel->messages as $message)
-                <div class="flex space-x-3 hover:bg-gray-650 p-2 rounded message-item group" data-message-id="{{ $message->id }}">
+                <div class="relative flex space-x-3 hover:bg-gray-650 p-2 rounded message-item group" data-message-id="{{ $message->id }}">
                     <!-- User Avatar -->
                     <div class="w-10 h-10 bg-indigo-500 rounded-full flex-shrink-0 flex items-center justify-center">
-                        {{ substr($message->user->username, 0, 1) }}
+                        {{ substr($message->user->name, 0, 1) }}
                     </div>
                     
                     <!-- Message Content -->
                     <div class="flex-1">
                         <div class="flex items-baseline space-x-2">
-                            <span class="font-semibold text-white">{{ $message->user->username }}</span>
+                            <span class="font-semibold text-white">{{ $message->user->name }}</span>
                             <span class="text-xs text-gray-400">{{ $message->created_at->format('M j, g:i A') }}</span>
                         </div>
                         
@@ -394,20 +341,8 @@
             </div>
             @endif
         </div>
-
         <!-- Members Sidebar -->
-                <div class="flex h-screen bg-gray-900 text-white">
-            <!-- Server Sidebar - Hidden on mobile -->
-            {{-- <div class="hidden md:flex w-16 bg-gray-800 flex-col items-center py-4">
-                <!-- ... server sidebar content ... -->
-            </div> --}}
-
-            <!-- Channels Sidebar - Collapsible on mobile -->
-            {{-- <div class="w-60 bg-gray-800 flex flex-col md:relative absolute inset-y-0 left-0 z-40 transform md:transform-none transition-transform duration-300 ease-in-out"
-                id="channels-sidebar">
-                <!-- ... channels sidebar content ... -->
-            </div> --}}
-
+        <div class="hidden md:flex flex-col  bg-gray-800 border-l border-gray-700">
             <!-- Mobile menu button -->
             <button class="md:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded" 
                     onclick="toggleSidebar()">
@@ -421,31 +356,103 @@
             </div>
             
             <div class="p-4 space-y-2">
-                @foreach($server->members as $member)
-                <div class="flex items-center space-x-3 p-2 rounded hover:bg-gray-700 transition">
-                    <div class="relative">
-                        <div class="w-8 h-8 bg-{{ $member->isOnline() ? 'green' : 'gray' }}-500 rounded-full flex items-center justify-center text-sm font-semibold">
-                            {{ substr($member->username, 0, 1) }}
-                        </div>
-                        <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-{{ $member->isOnline() ? 'green' : 'gray' }}-500 rounded-full border-2 border-gray-800"></div>
-                    </div>
-                    <div class="flex-1">
-                        <div class="text-sm font-medium text-gray-200">{{ $member->username }}</div>
-                        <div class="text-xs text-gray-400 flex items-center">
-                            @if($member->pivot->role === 'owner')
-                            <span class="text-yellow-400">👑 Owner</span>
-                            @elseif($member->pivot->role === 'admin')
-                            <span class="text-red-400">⚡ Admin</span>
-                            @else
-                            <span class="text-gray-400">Member</span>
-                            @endif
-                        </div>
-                    </div>
+    @foreach($server->members as $member)
+    <div class="flex items-center justify-between p-2 rounded hover:bg-gray-700 transition group">
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div class="w-8 h-8 bg-{{ $member->isOnline() ? 'green' : 'gray' }}-500 rounded-full flex items-center justify-center text-sm font-semibold">
+                    {{ substr($member->name, 0, 1) }}
                 </div>
-                @endforeach
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-{{ $member->isOnline() ? 'green' : 'gray' }}-500 rounded-full border-2 border-gray-800"></div>
+            </div>
+            <div class="flex-1">
+                <div class="text-sm font-medium text-gray-200">{{ $member->name }}</div>
+                <div class="text-xs text-gray-400 flex items-center">
+                    @if($member->pivot->role === 'owner')
+                    <span class="text-yellow-400">Owner</span>
+                    @elseif($member->pivot->role === 'admin')
+                    <span class="text-red-400">Admin</span>
+                    @else
+                    <span class="text-gray-400">Member</span>
+                    @endif
+                </div>
             </div>
         </div>
+        
+        @if($server->owner_id == auth()->id() && $member->id == auth()->id())
+        <div class="relative" x-data="{ open: false }">
+            <!-- Tombol titik tiga -->
+            <button @click="open = !open" 
+                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open"
+                 @click.away="open = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 class="absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-lg p-2 z-50 border border-gray-700">
+                <div class="space-y-1">
+                    <!-- Bagian Invite Link -->
+                    <div class="px-3 py-2 text-xs font-medium text-gray-400 border-b border-gray-700">
+                        Invite Link
+                    </div>
+                    
+                    @if($server->invite_code)
+                    <div class="px-3 py-2">
+                        <div class="text-xs text-gray-300 mb-1">Server Invite Link</div>
+                        <div class="flex items-center space-x-2 bg-gray-700 p-2 rounded text-xs">
+                            <code class="text-green-400 flex-1 truncate">
+                                {{ url('/join/' . $server->invite_code) }}
+                            </code>
+                            <button onclick="copyInviteCode('{{ $server->invite_code }}')"
+                                    class="text-blue-400 hover:text-blue-300 bg-gray-600 px-2 py-1 rounded transition-colors text-xs">
+                                Copy
+                            </button>
+                        </div>
+                        
+                        <!-- Revoke Button -->
+                        <form action="{{ route('invites.revoke', $server) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition flex items-center justify-center space-x-1">
+                                <span>🔒</span>
+                                <span>Revoke Invite Link</span>
+                            </button>
+                        </form>
+                    </div>
+                    @else
+                    <div class="px-3 py-2">
+                        <form action="{{ route('invites.generate', $server) }}" method="POST">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition flex items-center justify-center space-x-1">
+                                <span>🎯</span>
+                                <span>Generate Invite</span>
+                            </button>
+                        </form>
+                    </div>
+                    @endif
+                    
+                    <!-- Opsi tambahan lainnya bisa ditambahkan di sini -->
+                    <div class="px-3 py-2 text-xs font-medium text-gray-400 border-t border-gray-700">
+                        Server Settings
+                    </div>
+                    <a href="#" class="flex items-center space-x-2 px-3 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded transition">
+                        <span>⚙️</span>
+                        <span>Edit Server</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
+    @endforeach
+</div>
 
     </body>
 </html>

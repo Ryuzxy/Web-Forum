@@ -2,6 +2,8 @@ import './bootstrap';
 
 import './echo';
 
+import './chat';
+
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;

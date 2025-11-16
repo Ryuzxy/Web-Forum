@@ -9,8 +9,17 @@ class Message extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['channel_id', 'user_id', 'content', 'metadata', 'reply_to_id', 'content', 'file_path', 'file_name', 
-    'file_size', 'file_type', 'mime_type'];
+    protected $fillable = 
+    ['channel_id',
+    'user_id',
+    'content',
+    'metadata',
+    'reply_to_id',
+    'content',
+    'file_path',
+    'file_name',
+    'file_size', 
+    'mime_type'];
 
     protected $casts = [
         'metadata' => 'array',
