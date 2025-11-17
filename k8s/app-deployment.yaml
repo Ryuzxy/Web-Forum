@@ -1,0 +1,65 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-app
+  namespace: web-forum
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: laravel
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: laravel
+    spec:
+      initContainers:
+      - name: init-db
+        image: your-registry/web-forum:latest
+        command: ['sh', '-c', 'until nc -z mysql-service 3306; do echo waiting for mysql; sleep 2; done;']
+      containers:
+      - name: laravel-app
+        image: your-registry/web-forum:latest
+        ports:
+        - containerPort: 9000
+        envFrom:
+        - configMapRef:
+            name: laravel-config
+        - secretKeyRef:
+            name: laravel-secret
+        volumeMounts:
+        - name: storage
+          mountPath: /var/www/storage
+        - name: bootstrap-cache
+          mountPath: /var/www/bootstrap/cache
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: storage-pvc
+      - name: bootstrap-cache
+        emptyDir: {}

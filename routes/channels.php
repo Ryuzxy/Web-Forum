@@ -42,3 +42,16 @@ Broadcast::channel('channel.{channelId}', function ($user, $channelId) {
 Broadcast::channel('chat.{receiverId}', function ($user, $receiverId) {
     return (int) $user->id === (int) $receiverId || true;
 });
+
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
+// Tambahkan channels untuk forum realtime
+Broadcast::channel('chat.{roomId}', function ($user, $roomId) {
+    return ['id' => $user->id, 'name' => $user->name];
+});
+
+Broadcast::channel('notifications.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});

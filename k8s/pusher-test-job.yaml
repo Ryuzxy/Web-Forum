@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pusher-test
+  namespace: web-forum
+spec:
+  template:
+    spec:
+      containers:
+      - name: test
+        image: your-registry/web-forum:latest
+        command: ["php", "artisan", "pusher:test"]
+        envFrom:
+        - configMapRef:
+            name: laravel-config
+        - secretKeyRef:
+            name: laravel-secret
+      restartPolicy: Never

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: web-forum
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS web_forum;
+    GRANT ALL PRIVILEGES ON web_forum.* TO 'web_forum'@'%';

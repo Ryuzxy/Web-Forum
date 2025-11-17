@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: web-forum
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        - name: storage
+          mountPath: /var/www/storage
+        - name: public
+          mountPath: /var/www/public
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      - name: storage
+        persistentVolumeClaim:
+          claimName: storage-pvc
+      - name: public
+        emptyDir: {}

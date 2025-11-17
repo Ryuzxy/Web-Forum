@@ -1,0 +1,26 @@
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: laravel-migrate
+  namespace: web-forum
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrate
+        image: your-registry/web-forum:latest
+        command: ["php", "artisan", "migrate", "--force"]
+        envFrom:
+        - configMapRef:
+            name: laravel-config
+        - secretKeyRef:
+            name: laravel-secret
+        volumeMounts:
+        - name: storage
+          mountPath: /var/www/storage
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: storage-pvc
+      restartPolicy: OnFailure

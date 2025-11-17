@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-service
+  namespace: web-forum
+spec:
+  selector:
+    app: laravel
+  ports:
+  - port: 9000
+    targetPort: 9000
