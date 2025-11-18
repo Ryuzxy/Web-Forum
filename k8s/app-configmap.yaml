@@ -17,7 +17,7 @@ data:
   DB_HOST: "mysql-service"
   DB_PORT: "3306"
   DB_DATABASE: "forum_app"
-  DB_USERNAME: "root"
+  DB_USERNAME: "forum_app_user"
   
   BROADCAST_DRIVER: "pusher"  
   PUSHER_APP_ID: "2072648"

@@ -21,42 +21,79 @@ spec:
     spec:
       initContainers:
       - name: init-db
-        image: your-registry/web-forum:latest
+        image: busybox:1.28
         command: ['sh', '-c', 'until nc -z mysql-service 3306; do echo waiting for mysql; sleep 2; done;']
       containers:
       - name: laravel-app
-        image: your-registry/web-forum:latest
+        image: web-forum:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000
-        envFrom:
-        - configMapRef:
-            name: laravel-config
-        - secretKeyRef:
-            name: laravel-secret
+        env:
+        # ConfigMap values menggunakan envFrom (hanya untuk configMap)
+        - name: APP_NAME
+          value: "Web Forum"
+        - name: APP_ENV
+          value: "production"
+        - name: APP_DEBUG
+          value: "false"
+        - name: APP_URL
+          value: "http://ForumConnect.com"
+        - name: BROADCAST_DRIVER
+          value: "pusher"
+        - name: DB_CONNECTION
+          value: "mysql"
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_DATABASE
+          value: "web_forum"
+        - name: DB_USERNAME
+          value: "web_forum"
+        
+        # Secret values (harus explicit)
+        - name: APP_KEY
+          valueFrom:
+            secretKeyRef:
+              name: laravel-secret
+              key: APP_KEY
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: laravel-secret
+              key: DB_PASSWORD
+        - name: PUSHER_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: laravel-secret
+              key: PUSHER_APP_ID
+        - name: PUSHER_APP_KEY
+          valueFrom:
+            secretKeyRef:
+              name: laravel-secret
+              key: PUSHER_APP_KEY
+        - name: PUSHER_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: laravel-secret
+              key: PUSHER_APP_SECRET
+
         volumeMounts:
         - name: storage
           mountPath: /var/www/storage
         - name: bootstrap-cache
           mountPath: /var/www/bootstrap/cache
         livenessProbe:
-          httpGet:
-            path: /health
-            port: 9000
+          exec:
+            command: ["php", "artisan", "env"]
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          httpGet:
-            path: /health
-            port: 9000
+          exec:
+            command: ["php", "artisan", "env"]
           initialDelaySeconds: 5
           periodSeconds: 5
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
       volumes:
       - name: storage
         persistentVolumeClaim:

@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: test
-        image: your-registry/web-forum:latest
+        image: ryuxyy/web-forum:latest
         command: ["php", "artisan", "pusher:test"]
         envFrom:
         - configMapRef:

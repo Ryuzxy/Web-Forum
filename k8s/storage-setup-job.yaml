@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: storage-setup
-        image: your-registry/web-forum:latest
+        image: ryuxyy/web-forum:latest
         command: ["sh", "-c", "php artisan storage:link && chmod -R 775 storage bootstrap/cache"]
         envFrom:
         - configMapRef:
