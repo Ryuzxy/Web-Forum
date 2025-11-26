@@ -1,59 +1,147 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Web Forum
 
-## About Laravel
+Sebuah platform forum diskusi online yang dibangun dengan **React.js** dan **Node.js**. Aplikasi ini memungkinkan pengguna untuk berpartisipasi dalam diskusi forum dengan berbagai fitur interaktif.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ✨ Fitur
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Autentikasi Pengguna**
+  - Registrasi dan login pengguna
+  - Sistem autentikasi JWT
+  - Proteksi rute berdasarkan role
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Manajemen Forum**
+  - Buat, edit, dan hapus thread
+  - Posting komentar dan balasan
+  - Kategori forum yang terorganisir
 
-## Learning Laravel
+- **Fitur Interaktif**
+  - Voting (like/dislike) pada thread dan komentar
+  - Bookmark thread favorit
+  - Follow pengguna lain
+  - Sistem reputasi pengguna
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Antarmuka Pengguna**
+  - Responsive design
+  - Dark/Light mode
+  - Real-time updates
+  - Optimized for mobile devices
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠 Teknologi
 
-## Laravel Sponsors
+### Frontend
+- **React.js** - UI framework
+- **Tailwind CSS** - Styling
+- **React Router** - Navigation
+- **Axios** - HTTP client
+- **React Query** - State management
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **JWT** - Authentication
+- **bcrypt** - Password hashing
+- **CORS** - Cross-origin resource sharing
 
-### Premium Partners
+## 🚀 Instalasi dan Menjalankan
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Prerequisites
+- Node.js (versi 14 atau lebih tinggi)
+- npm atau yarn
 
-## Contributing
+### Langkah-langkah
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/Ryuzxy/Web-Forum.git
+   cd Web-Forum
+   ```
 
-## Code of Conduct
+2. **Install dependencies**
+   ```bash
+   # Install frontend dependencies
+   cd client
+   npm install
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+   # Install backend dependencies  
+   cd ../server
+   npm install
+   ```
 
-## Security Vulnerabilities
+3. **Konfigurasi Environment**
+   - Buat file `.env` di folder server
+   - Tambahkan variabel environment yang diperlukan (JWT_SECRET, dll)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. **Jalankan aplikasi**
+   ```bash
+   # Terminal 1 - Backend
+   cd server
+   npm run dev
 
-## License
+   # Terminal 2 - Frontend  
+   cd client
+   npm start
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. **Akses aplikasi**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+
+## 📁 Struktur Proyek
+
+```
+Web-Forum/
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/        # Page components
+│   │   ├── hooks/        # Custom hooks
+│   │   └── utils/        # Utility functions
+│   └── public/           # Static assets
+├── server/               # Backend Node.js application
+│   ├── controllers/      # Route controllers
+│   ├── middleware/       # Custom middleware
+│   ├── models/          # Database models
+│   ├── routes/          # API routes
+│   └── config/          # Configuration files
+└── README.md
+```
+
+## 🔧 Scripts yang Tersedia
+
+### Frontend
+```bash
+npm start      # Jalankan development server
+npm run build  # Build untuk production
+npm test       # Jalankan test suite
+```
+
+### Backend
+```bash
+npm run dev    # Jalankan development server dengan nodemon
+npm start      # Jalankan production server
+```
+
+## 🤝 Kontribusi
+
+Kontribusi selalu diterima! Silakan:
+
+1. Fork project ini
+2. Buat branch fitur (`git checkout -b feature/AmazingFeature`)
+3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
+
+## 📝 Lisensi
+
+Distributed under the MIT License. Lihat `LICENSE` untuk informasi lebih lanjut.
+
+## 📞 Kontak
+
+Ryuzxy - [GitHub](https://github.com/Ryuzxy)
+
+Link Project: [https://github.com/Ryuzxy/Web-Forum](https://github.com/Ryuzxy/Web-Forum)
+
+---
+
+⭐ Beri bintang pada repository ini jika Anda merasa project ini bermanfaat!
